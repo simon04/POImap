@@ -19,7 +19,7 @@
       map.setView(new L.LatLng(47.25, 11.3), 13).addLayer(cloudmade);
 
       if (navigator.geolocation)
-        navigator.geolocation.getCurrentPosition(function(pos) {
+        navigator.geolocation.getCurrentPosition(function(position) {
             var center = new L.LatLng(position.coords.latitude, position.coords.longitude);
             map.setView(center, 13);
         });
