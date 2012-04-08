@@ -8,21 +8,34 @@
   <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
   <script>
     function initMap() {
-      map = new L.Map('map');
+      var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
+          attr_mapbox = 'Imagery &copy; <a href="http://mapbox.com/about/maps/">MapBox</a>'
+          attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
 
-      var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png',
-          cloudmadeAttribution = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap contributors</a>, ' 
-            + 'Imagery &copy; <a href="http://cloudmade.com/">CloudMade</a>, '
-            + 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>',
-          cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+      var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: [attr_osm, attr_overpass].join(', ')}),
+          mapbox_streets = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png", {attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')}),
+          mapbox_light = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-light/{z}/{x}/{y}.png", {attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')}),
+              mapbox_simple = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-simple/{z}/{x}/{y}.png", {attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')});
 
-      map.setView(new L.LatLng(47.25, 11.3), 13).addLayer(cloudmade);
+      map = new L.Map('map', {
+          center: new L.LatLng(47.25, 11.3),
+          zoom: 13,
+          layers: mapbox_light,
+      });
 
-      if (navigator.geolocation)
+      map.addControl(new L.Control.Layers({
+          'MapBox Streets': mapbox_streets,
+          'MapBox Light': mapbox_light,
+          'MapBox Simple': mapbox_simple,
+          'OpenSteetMap': osm,
+      }));
+
+      if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             var center = new L.LatLng(position.coords.latitude, position.coords.longitude);
             map.setView(center, 13);
         });
+      }
     }
 
     function loadAed() {
