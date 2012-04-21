@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IVB Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+  <script src="map.js"></script>
+  <script>
+    var map;
+    $(function () {
+      map = initMap();
+      var layer = new L.GeoJSON(null, {
+        pointToLayer: function (latlng) {
+          return new L.CircleMarker(latlng);
+        },
+        });
+      layer.on('featureparse', function (e) {
+        e.layer.bindPopup(e.properties.name);
+        e.layer.setStyle(e.properties.style);
+      });
+      $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][ref!~NL];node(r)->.x;way(r);node(w););out body;', function(d) {
+        layer.addGeoJSON(toGeoJSON(d));
+      });
+      map.addLayer(layer);
+    });
+
+    function toGeoJSON(overpassJSON) {
+      var nodes = {}, ways = {};
+      var featureCollection = {type: 'FeatureCollection', features: []};
+      for (var i = 0; i < overpassJSON.elements.length; i++) {
+        var p = overpassJSON.elements[i];
+        switch (p.type) {
+          case 'node':
+            p.coordinates = [p.lon, p.lat];
+            p.geometry = {type: 'Point', coordinates: p.coordinates};
+            nodes[p.id] = p;
+            break;
+          case 'way':
+            p.coordinates = p.nodes.map(function (id) {
+              return nodes[id].coordinates;
+            });
+            p.geometry = {type: 'LineString', coordinates: p.coordinates};
+            ways[p.id] = p;
+            break;
+          case 'relation':
+            p.properties = {name: p.tags.name, style: {color: p.tags.color || '#000000'}};
+            p.members.map(function (mem) {
+              var i = (mem.type == 'way' ? ways : nodes)[mem.ref];
+              if (!i) return;
+              featureCollection.features.push({
+                type: 'Feature',
+                geometry: i.geometry,
+                properties: $.extend({}, p.properties, {name: '<img src="http://efa.ivb.at/ivb/images/buttons/ivb_button_' + p.tags.ref.toLowerCase() + '.png">' + (i.tags && i.tags.name ? '&nbsp;' + i.tags.name : '')}),
+              });
+            });
+            break;
+        }
+      }
+      return featureCollection;
+    }
+  </script>
+  <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    html, body, #map {
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+</html>
+
