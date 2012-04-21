@@ -14,12 +14,18 @@ function initMap() {
       layers: mapbox_light,
   });
 
-  map.addControl(new L.Control.Layers({
-    'MapBox Streets': mapbox_streets,
-    'MapBox Light': mapbox_light,
-    'MapBox Simple': mapbox_simple,
-    'OpenSteetMap': osm,
-  }));
+  map.getControl = function () {
+    var ctrl = new L.Control.Layers({
+      'MapBox Streets': mapbox_streets,
+       'MapBox Light': mapbox_light,
+       'MapBox Simple': mapbox_simple,
+       'OpenSteetMap': osm,
+    });
+    return function () {
+      return ctrl;
+    }
+  }();
+  map.addControl(map.getControl());
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {

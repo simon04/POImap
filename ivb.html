@@ -11,24 +11,31 @@
     var map;
     $(function () {
       map = initMap();
+      $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][ref!~NL];node(r)->.x;way(r);node(w););out body;', function(d) {
+        $.each(toGeoJSON(d), function (name, data) {
+          addGeoJSON(name, data);
+        });
+      });
+    });
+
+    function addGeoJSON(name, data) {
       var layer = new L.GeoJSON(null, {
         pointToLayer: function (latlng) {
           return new L.CircleMarker(latlng);
         },
-        });
+      });
       layer.on('featureparse', function (e) {
         e.layer.bindPopup(e.properties.name);
         e.layer.setStyle(e.properties.style);
       });
-      $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][ref!~NL];node(r)->.x;way(r);node(w););out body;', function(d) {
-        layer.addGeoJSON(toGeoJSON(d));
-      });
+      layer.addGeoJSON(data);
       map.addLayer(layer);
-    });
+      map.getControl().addOverlay(layer, 'Linie ' + name);
+    }
 
     function toGeoJSON(overpassJSON) {
       var nodes = {}, ways = {};
-      var featureCollection = {type: 'FeatureCollection', features: []};
+      var featureCollections = {};
       for (var i = 0; i < overpassJSON.elements.length; i++) {
         var p = overpassJSON.elements[i];
         switch (p.type) {
@@ -45,11 +52,13 @@
             ways[p.id] = p;
             break;
           case 'relation':
-            p.properties = {name: p.tags.name, style: {color: p.tags.color || '#000000'}};
+            var fc = featureCollections[p.tags.ref] || {type: 'FeatureCollection', features: []};
+            featureCollections[p.tags.ref] = fc;
+            p.properties = {name: p.tags.ref, style: {color: p.tags.color || '#000000'}};
             p.members.map(function (mem) {
               var i = (mem.type == 'way' ? ways : nodes)[mem.ref];
               if (!i) return;
-              featureCollection.features.push({
+              fc.features.push({
                 type: 'Feature',
                 geometry: i.geometry,
                 properties: $.extend({}, p.properties, {name: '<img src="http://efa.ivb.at/ivb/images/buttons/ivb_button_' + p.tags.ref.toLowerCase() + '.png">' + (i.tags && i.tags.name ? '&nbsp;' + i.tags.name : '')}),
@@ -58,7 +67,7 @@
             break;
         }
       }
-      return featureCollection;
+      return featureCollections;
     }
   </script>
   <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
