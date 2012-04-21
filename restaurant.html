@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Restaurant Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+  <script>
+    function initMap() {
+      var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
+          attr_mapbox = 'Imagery &copy; <a href="http://mapbox.com/about/maps/">MapBox</a>'
+          attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
+
+      var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution: [attr_osm, attr_overpass].join(', ')}),
+          mapbox_streets = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png", {maxZoom:17, attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')}),
+          mapbox_light = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-light/{z}/{x}/{y}.png", {maxZoom:17, attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')}),
+          mapbox_simple = new L.TileLayer("http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-simple/{z}/{x}/{y}.png", {maxZoom:17, attribution: [attr_mapbox, attr_osm, attr_overpass].join(', ')});
+
+      map = new L.Map('map', {
+          center: new L.LatLng(47.25, 11.3),
+          zoom: 13,
+          layers: mapbox_light,
+      });
+
+      ids = {};
+
+      L.LatLngBounds.prototype.toOverpassBBoxString = function(){
+        var a = this._southWest,
+            b = this._northEast;
+        return [a.lat, a.lng, b.lat, b.lng].join(",");
+      }
+
+      map.addControl(new L.Control.Layers({
+          'MapBox Streets': mapbox_streets,
+          'MapBox Light': mapbox_light,
+          'MapBox Simple': mapbox_simple,
+          'OpenSteetMap': osm,
+      }));
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var center = new L.LatLng(position.coords.latitude, position.coords.longitude);
+            map.setView(center, 14);
+        });
+      }
+
+      loadPoi();
+
+      map.on('moveend', loadPoi);
+    }
+
+    function loadPoi() {
+      if (map.getZoom() < 14) {
+        return;
+      }
+      // Maki: restaurant-18 from MapBox (http://mapbox.com/maki/)
+      var PoiIcon = L.Icon.extend({
+        //iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEX///////9vb2////////////////9ZWVn///9JSUlcXFz///+JiYn///////////////////96enr///9SUlL///9fX19JSUn///////////9NTU2AgID///9ERETA5D9xAAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //black
+        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEUAAAD///+KU1P///////////////9xQED///9fMjJ1QkL///+jbm7///////////////////+XXFz///9pOjr///94RUVfMjL///////////9kNTWdYmL///9bLS2eoyA3AAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //darkred
+        iconSize: new L.Point(18, 18),
+        iconAnchor: new L.Point(9, 9),
+        shadowSize: new L.Point(0, 0),
+      });
+
+      var poiUrl = 'http://overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity=restaurant];out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
+
+      var poiInfo = function(tags) {
+        var r = $('<table>');
+        for (key in tags)
+          r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
+        return $('<div>').append(r).html();
+      }
+
+      $.getJSON(poiUrl, function(data) {
+        $.each(data.elements, function(ign, i) {
+          if (i.id in ids) return;
+          ids[i.id] = true;
+          var pos = new L.LatLng(i.lat, i.lon);
+          var icon = new PoiIcon();
+          var popup = poiInfo(i.tags);
+          var marker = new L.Marker(pos, {icon: icon}).bindPopup(popup);
+          map.addLayer(marker);
+        });
+      });
+    }
+
+  </script>
+  <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    html, body, #map {
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+      initMap();
+  </script>
+</body>
+</html>
+
