@@ -33,6 +33,14 @@ function initMap() {
     return [a.lat, a.lng, b.lat, b.lng].join(",");
   }
 
+  var path_style = L.Path.prototype._updateStyle;
+  L.Path.prototype._updateStyle = function () {
+    path_style.apply(this);
+    for (k in this.options.svg) {
+      this._path.setAttribute(k, this.options.svg[k]);
+    }
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function (position) {
       var center = new L.LatLng(position.coords.latitude, position.coords.longitude);

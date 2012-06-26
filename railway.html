@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Railway Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+  <script src="map.js"></script>
+  <script>
+    var map, layer;
+    var nodes = {}, ways = {};
+    $(function () {
+      map = initMap();
+      layer = new L.GeoJSON(null, {
+        //pointToLayer: function (latlng) {
+        //  return new L.CircleMarker(latlng);
+        //},
+      });
+      layer.on('featureparse', function (e) {
+        if (e.properties && e.properties.name) e.layer.bindPopup(e.properties.name);
+        if (e.properties && e.properties.style) e.layer.setStyle(e.properties.style);
+      });
+      map.addLayer(layer);
+      map.zoomIn();
+      loadPoi();
+      map.on('moveend', loadPoi);
+    });
+
+    function loadPoi() {
+      if (map.getZoom() < 12) {
+        return;
+      }
+
+      var tagsTable = function(tags) {
+        var r = $('<table>');
+        for (key in tags)
+          r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
+        return $('<div>').append(r).html();
+      }
+
+      var poiUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
+
+      $.getJSON(poiUrl, function(data) {
+        parseOverpassJSON(data, null, function (w) {
+          if (ways[w.id] || !w.tags.railway) return;
+          if (w.tags.bridge) layer.addGeoJSON({type: 'Feature', geometry: w.geometry, properties: {style: {color: '#4E4D48', weight: 8}}});
+          ways[w.id] = true;
+          var style = {};
+          style.color = w.tags.railway == 'rail' || w.tags.railway == 'narrow_gauge' ? (!w.tags.usage
+          ? '#000000'
+          : w.tags.usage == 'industrial'
+          ? '#AC7812'
+          : w.tags.usage == 'branch'
+          ? '#4C5CB4'
+          : w.tags.usage == 'main'
+          ? '#00C819'
+          : w.tags.usage == 'highspeed'
+          ? '#D40000'
+          : '#d00')
+          : w.tags.railway == 'construction'
+          ? '#FFB600'
+          : w.tags.railway == 'disused'
+          ? '#000000' // dashed
+          : w.tags.railway == 'abandoned'
+          ? '#585858'
+          : '#20000000';
+          if (w.tags.tunnel == 'yes' || w.tags.railway == 'construction' || w.tags.railway == 'disused' || w.tags.railway == 'abandoned') style.svg = {'stroke-dasharray': '6,8'};
+          style.weight = w.tags.service ? 2 : 4;
+          layer.addGeoJSON({type: 'Feature', geometry: w.geometry, properties: {name: tagsTable(w.tags), style: style}});
+        }, null);
+      });
+    }
+
+  </script>
+  <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    html, body, #map {
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+</html>
+
