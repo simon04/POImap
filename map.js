@@ -27,14 +27,14 @@ function initMap() {
   }();
   map.addControl(map.getControl());
 
-  L.LatLngBounds.prototype.toOverpassBBoxString = function(){
+  L.LatLngBounds.prototype.toOverpassBBoxString = function (){
     var a = this._southWest,
         b = this._northEast;
     return [a.lat, a.lng, b.lat, b.lng].join(",");
   }
 
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
+    navigator.geolocation.getCurrentPosition(function (position) {
       var center = new L.LatLng(position.coords.latitude, position.coords.longitude);
       map.setView(center, 13);
     });
