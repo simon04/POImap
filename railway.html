@@ -35,7 +35,8 @@
       var tagsTable = function(tags) {
         var r = $('<table>');
         for (key in tags)
-          r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
+          r.append($('<tr>').append($('<th>').text(key)).append(
+              key == 'ID' ? $('<td>').html(tags[key]) : $('<td>').text(tags[key])));
         return $('<div>').append(r).html();
       }
 
@@ -44,10 +45,18 @@
       $.getJSON(poiUrl, function(data) {
         parseOverpassJSON(data, null, function (w) {
           if (ways[w.id] || !w.tags.railway) return;
-          if (w.tags.bridge) layer.addGeoJSON({type: 'Feature', geometry: w.geometry, properties: {style: {color: '#4E4D48', weight: 8}}});
+          if (-1 != $.inArray(w.tags.railway, ['tram', 'funicular'])) return;
+          /*
+          if (w.tags.bridge && w.tags.bridge != 'no')
+            layer.addGeoJSON({
+              type: 'Feature',
+              geometry: w.geometry,
+              properties: {style: {color: '#4E4D48', weight: 8}}
+            });
+          */
           ways[w.id] = true;
           var style = {};
-          style.color = w.tags.railway == 'rail' || w.tags.railway == 'narrow_gauge' ? (!w.tags.usage
+          style.color = -1 != $.inArray(w.tags.railway, ['rail', 'narrow_gauge', 'light_rail']) ? (!w.tags.usage
           ? '#000000'
           : w.tags.usage == 'industrial'
           ? '#AC7812'
@@ -65,9 +74,18 @@
           : w.tags.railway == 'abandoned'
           ? '#585858'
           : '#20000000';
-          if (w.tags.tunnel == 'yes' || w.tags.railway == 'construction' || w.tags.railway == 'disused' || w.tags.railway == 'abandoned') style.svg = {'stroke-dasharray': '6,8'};
+          if (w.tags.tunnel == 'yes'
+              || w.tags.railway == 'construction'
+              || w.tags.railway == 'disused'
+              || w.tags.railway == 'abandoned')
+            style.svg = {'stroke-dasharray': '6,8'};
           style.weight = w.tags.service ? 2 : 4;
-          layer.addGeoJSON({type: 'Feature', geometry: w.geometry, properties: {name: tagsTable(w.tags), style: style}});
+          var tags = $.extend({ID: '<a title="edit using remote control" href="http://localhost:8111/load_object?objects=w'+w.id+'">'+w.id+'</a>'}, w.tags);
+          layer.addGeoJSON({
+            type: 'Feature',
+            geometry: w.geometry,
+            properties: {name: tagsTable(tags), style: style}
+          });
         }, null);
       });
     }
