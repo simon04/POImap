@@ -11,8 +11,24 @@
     var map;
     $(function () {
       map = initMap();
-      $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][ref!~NL];node(r)->.x;way(r);node(w););out body;', function(d) {
-        $.each(toGeoJSON(d), function (name, data) {
+      $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][ref!~NL];node(r)->.x;way(r);node(w););out body;', function (d) {
+        var featureCollections = {};
+        parseOverpassJSON(d, null, null, function (p) {
+          var fc = featureCollections[p.tags.ref] || {type: 'FeatureCollection', features: []};
+          featureCollections[p.tags.ref] = fc;
+          p.members.map(function (mem) {
+            if (!mem.obj) return;
+            var n = '<img src="http://efa.ivb.at/ivb/images/buttons/ivb_button_'
+                + p.tags.ref.toLowerCase() + '.png">'
+                + (mem.obj.tags && mem.obj.tags.name ? '&nbsp;' + mem.obj.tags.name : '');
+            fc.features.push({
+              type: 'Feature',
+              geometry: mem.obj.geometry,
+              properties: {name: n, style: {color: p.tags.color || '#000000'}},
+            });
+          });
+        });
+        $.each(featureCollections, function (name, data) {
           addGeoJSON(name, data);
         });
       });
@@ -33,42 +49,6 @@
       map.getControl().addOverlay(layer, 'Linie ' + name);
     }
 
-    function toGeoJSON(overpassJSON) {
-      var nodes = {}, ways = {};
-      var featureCollections = {};
-      for (var i = 0; i < overpassJSON.elements.length; i++) {
-        var p = overpassJSON.elements[i];
-        switch (p.type) {
-          case 'node':
-            p.coordinates = [p.lon, p.lat];
-            p.geometry = {type: 'Point', coordinates: p.coordinates};
-            nodes[p.id] = p;
-            break;
-          case 'way':
-            p.coordinates = p.nodes.map(function (id) {
-              return nodes[id].coordinates;
-            });
-            p.geometry = {type: 'LineString', coordinates: p.coordinates};
-            ways[p.id] = p;
-            break;
-          case 'relation':
-            var fc = featureCollections[p.tags.ref] || {type: 'FeatureCollection', features: []};
-            featureCollections[p.tags.ref] = fc;
-            p.properties = {name: p.tags.ref, style: {color: p.tags.color || '#000000'}};
-            p.members.map(function (mem) {
-              var i = (mem.type == 'way' ? ways : nodes)[mem.ref];
-              if (!i) return;
-              fc.features.push({
-                type: 'Feature',
-                geometry: i.geometry,
-                properties: $.extend({}, p.properties, {name: '<img src="http://efa.ivb.at/ivb/images/buttons/ivb_button_' + p.tags.ref.toLowerCase() + '.png">' + (i.tags && i.tags.name ? '&nbsp;' + i.tags.name : '')}),
-              });
-            });
-            break;
-        }
-      }
-      return featureCollections;
-    }
   </script>
   <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
   <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
