@@ -32,18 +32,36 @@
         return;
       }
 
-      var tagsTable = function(tags) {
+      var tagsTable = function(tags, type, id) {
         var r = $('<table>');
+        if (type && id)
+          r.append($('<tr>').append($('<th>').text('ID')).append($('<td>').text(id).append(' ').append($('<a>').attr({href: 'href="http://localhost:8111/load_object?objects='+type+id, target: '_blank'}).text('edit')).append(' ').append($('<a>').attr({href: 'http://www.openstreetmap.org/browse/'+{w:'way',n:'node',r:'relation'}[type]+'/'+id, target: '_blank'}).text('browse'))));
         for (key in tags)
-          r.append($('<tr>').append($('<th>').text(key)).append(
-              key == 'ID' ? $('<td>').html(tags[key]) : $('<td>').text(tags[key])));
+          r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
       }
 
       var poiUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
 
       $.getJSON(poiUrl, function(data) {
-        parseOverpassJSON(data, null, function (w) {
+        parseOverpassJSON(data, function (n) {
+          if (!n.tags || !n.tags.railway) return;
+          var icon = n.tags.railway == 'station'
+            ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-18.png', size: 18}
+            : n.tags.railway == 'halt'
+            ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
+            : undefined;
+          if (!icon) return;
+          var CustomIcon = L.Icon.extend({
+            iconUrl: icon.icon,
+            iconSize: new L.Point(icon.size, icon.size),
+            iconAnchor: new L.Point(icon.size/2, icon.size/2),
+            shadowSize: new L.Point(0, 0),
+          });
+          map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
+            icon: new CustomIcon(),
+          }).bindPopup(tagsTable(n.tags, 'n', n.id)));
+        }, function (w) {
           if (ways[w.id] || !w.tags.railway) return;
           if (-1 != $.inArray(w.tags.railway, ['tram', 'funicular'])) return;
           /*
@@ -80,11 +98,10 @@
               || w.tags.railway == 'abandoned')
             style.svg = {'stroke-dasharray': '6,8'};
           style.weight = w.tags.service ? 2 : 4;
-          var tags = $.extend({ID: '<a title="edit using remote control" href="http://localhost:8111/load_object?objects=w'+w.id+'">'+w.id+'</a>'}, w.tags);
           layer.addGeoJSON({
             type: 'Feature',
             geometry: w.geometry,
-            properties: {name: tagsTable(tags), style: style}
+            properties: {name: tagsTable(w.tags, 'w', w.id), style: style}
           });
         }, null);
       });
