@@ -75,16 +75,16 @@
           ways[w.id] = true;
           var style = {};
           style.color = -1 != $.inArray(w.tags.railway, ['rail', 'narrow_gauge', 'light_rail']) ? (!w.tags.usage
-          ? '#000000'
-          : w.tags.usage == 'industrial'
-          ? '#AC7812'
-          : w.tags.usage == 'branch'
-          ? '#4C5CB4'
-          : w.tags.usage == 'main'
-          ? '#00C819'
-          : w.tags.usage == 'highspeed'
-          ? '#D40000'
-          : '#d00')
+            ? '#000000'
+            : w.tags.usage == 'industrial'
+            ? '#AC7812'
+            : w.tags.usage == 'branch'
+            ? '#4C5CB4'
+            : w.tags.usage == 'main'
+            ? '#00C819'
+            : w.tags.usage == 'highspeed'
+            ? '#D40000'
+            : '#d00')
           : w.tags.railway == 'construction'
           ? '#FFB600'
           : w.tags.railway == 'disused'
@@ -93,9 +93,9 @@
           ? '#585858'
           : '#20000000';
           if (w.tags.tunnel == 'yes'
-              || w.tags.railway == 'construction'
-              || w.tags.railway == 'disused'
-              || w.tags.railway == 'abandoned')
+            || w.tags.railway == 'construction'
+            || w.tags.railway == 'disused'
+            || w.tags.railway == 'abandoned')
             style.svg = {'stroke-dasharray': '6,8'};
           style.weight = w.tags.service ? 2 : 4;
           layer.addGeoJSON({
