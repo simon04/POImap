@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.js"></script>
   <script src="map.js"></script>
   <script>
     var map, ids = {};
@@ -21,7 +21,7 @@
         return;
       }
       // Maki: restaurant-18 from MapBox (http://mapbox.com/maki/)
-      var PoiIcon = L.Icon.extend({
+      var restaurantIcon = L.icon({
         //iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEX///////9vb2////////////////9ZWVn///9JSUlcXFz///+JiYn///////////////////96enr///9SUlL///9fX19JSUn///////////9NTU2AgID///9ERETA5D9xAAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //black
         iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEUAAAD///+KU1P///////////////9xQED///9fMjJ1QkL///+jbm7///////////////////+XXFz///9pOjr///94RUVfMjL///////////9kNTWdYmL///9bLS2eoyA3AAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //darkred
         iconSize: new L.Point(18, 18),
@@ -42,18 +42,17 @@
         $.each(data.elements, function(ign, i) {
           if (i.id in ids) return;
           ids[i.id] = true;
-          var pos = new L.LatLng(i.lat, i.lon);
-          var icon = new PoiIcon();
-          var popup = poiInfo(i.tags);
-          var marker = new L.Marker(pos, {icon: icon}).bindPopup(popup);
-          map.addLayer(marker);
+          L.marker([i.lat, i.lon], {
+            icon: restaurantIcon,
+            title: i.tags.name
+          }).bindPopup(poiInfo(i.tags)).addTo(map);
         });
       });
     }
 
   </script>
-  <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
-  <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.ie.css" /><![endif]-->
   <style>
     body {
       padding: 0;

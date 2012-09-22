@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <script src="http://leaflet.cloudmade.com/dist/leaflet.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.js"></script>
   <script src="map.js"></script>
   <script>
     var map, layer;
@@ -13,13 +13,10 @@
     $(function () {
       map = initMap();
       layer = new L.GeoJSON(null, {
-        //pointToLayer: function (latlng) {
-        //  return new L.CircleMarker(latlng);
-        //},
-      });
-      layer.on('featureparse', function (e) {
-        if (e.properties && e.properties.name) e.layer.bindPopup(e.properties.name);
-        if (e.properties && e.properties.style) e.layer.setStyle(e.properties.style);
+        onEachFeature: function (e, layer) {
+          if (e.properties && e.properties.name) layer.bindPopup(e.properties.name);
+          if (e.properties && e.properties.style) layer.setStyle(e.properties.style);
+        },
       });
       map.addLayer(layer);
       map.zoomIn();
@@ -52,14 +49,13 @@
             ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
             : undefined;
           if (!icon) return;
-          var CustomIcon = L.Icon.extend({
-            iconUrl: icon.icon,
-            iconSize: new L.Point(icon.size, icon.size),
-            iconAnchor: new L.Point(icon.size/2, icon.size/2),
-            shadowSize: new L.Point(0, 0),
-          });
           map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
-            icon: new CustomIcon(),
+            icon: L.icon({
+              iconUrl: icon.icon,
+              iconSize: new L.Point(icon.size, icon.size),
+              iconAnchor: new L.Point(icon.size/2, icon.size/2),
+              shadowSize: new L.Point(0, 0),
+            })
           }).bindPopup(tagsTable(n.tags, 'n', n.id)));
         }, function (w) {
           if (ways[w.id] || !w.tags.railway) return;
@@ -98,7 +94,7 @@
             || w.tags.railway == 'abandoned')
             style.svg = {'stroke-dasharray': '6,8'};
           style.weight = w.tags.service ? 2 : 4;
-          layer.addGeoJSON({
+          layer.addData({
             type: 'Feature',
             geometry: w.geometry,
             properties: {name: tagsTable(w.tags, 'w', w.id), style: style}
@@ -108,8 +104,8 @@
     }
 
   </script>
-  <link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.css" />
-  <!--[if lte IE 8]><link rel="stylesheet" href="http://leaflet.cloudmade.com/dist/leaflet.ie.css" /><![endif]-->
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.ie.css" /><![endif]-->
   <style>
     body {
       padding: 0;
