@@ -35,17 +35,17 @@
     });
 
     function addGeoJSON(name, data) {
-      var layer = new L.GeoJSON(null, {
-        pointToLayer: function (latlng) {
-          return new L.CircleMarker(latlng);
+      var layer = L.geoJson(data, {
+        style: function (e) {
+          return e.properties.style;
+        },
+        pointToLayer: function (data, latlng) {
+          return L.circleMarker(latlng, {fillOpacity: 0.5, weight: 5}).setRadius(4);
         },
         onEachFeature: function (e, layer) {
           layer.bindPopup(e.properties.name);
-          layer.setStyle(e.properties.style);
         },
-      });
-      layer.addData(data);
-      map.addLayer(layer);
+      }).addTo(map);
       map.getControl().addOverlay(layer, 'Linie ' + name);
     }
 
