@@ -13,7 +13,7 @@ function initMap() {
   map = new L.Map('map', {
     center: new L.LatLng(47.2632776, 11.4010086),
       zoom: 13,
-      layers: mapbox_light,
+      layers: osm_bw,
   });
 
   map.getControl = function () {
