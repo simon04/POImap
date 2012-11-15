@@ -11,6 +11,7 @@
     var map;
     $(function () {
       map = initMap();
+      // Adapt query
       $.getJSON('http://www.overpass-api.de/api/interpreter?data=[out:json];(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][route=tram][ref~"1|3|6|STB"][name!="IVB Linie 3"];node(r)->.x;way(r);node(w););out body;', function (d) {
         var featureCollections = {};
         parseOverpassJSON(d, null, null, function (p) {
@@ -24,6 +25,7 @@
             fc.features.push({
               type: 'Feature',
               geometry: mem.obj.geometry,
+              // Adapot style/color
               properties: {name: n, style: {opacity: 1, color: p.tags.color || '#000000'}},
               tags: mem.obj.tags,
               reltags: p.tags,
@@ -42,14 +44,20 @@
         style: function (e) {
           return e.properties.style;
         },
+        // Displaying of points, e.g., halts
         pointToLayer: function (data, latlng) {
+          // Adapot handling of duplicate stations of same line
+          if (!data.tags || !data.tags.name) return L.circleMarker(latlng, {weight: 0, fill: false});
           var id = [data.reltags.ref, data.tags.name].join('/');
-          if (halts[id] || !data.tags.name) return L.circleMarker(latlng, {weight: 0, fill: false});
+          if (halts[id]) return L.circleMarker(latlng, {weight: 0, fill: false});
           halts[id] = true;
+          // Adapt css classes of halt name
           var className = 'leaflet-div-icon L' + data.reltags.ref + ' ' + data.tags.name.replace(/\/| /g, '-').replace(/\(|\)/g, '');
+          // Add halt name as DivIcon
           L.marker(latlng, {
             icon: L.divIcon({className: className, html: data.tags.name || ''}),
           }).addTo(map);
+          // Add/return halt as CircleMarker
           return L.circleMarker(latlng, {fillOpacity: 0.5, weight: 5}).setRadius(4);
         },
         onEachFeature: function (e, layer) {

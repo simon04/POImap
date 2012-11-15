@@ -77,6 +77,10 @@ function parseOverpassJSON(overpassJSON, callbackNode, callbackWay, callbackRela
         if (typeof callbackWay === 'function') callbackWay(p);
         break;
       case 'relation':
+        if (!p.members) {
+          console.log('Empty relation', p);
+          break;
+        }
         p.members.map(function (mem) {
           mem.obj = (mem.type == 'way' ? ways : nodes)[mem.ref];
         });
