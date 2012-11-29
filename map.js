@@ -1,4 +1,6 @@
-function initMap() {
+var POImap = {};
+
+POImap.init = function () {
   var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
       attr_mapbox = 'Imagery &copy; <a href="http://mapbox.com/about/maps/">MapBox</a>'
         attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
@@ -52,10 +54,18 @@ function initMap() {
     });
   }
 
+  POImap.map = map;
   return map;
+};
+
+POImap.loadAndParseOverpassJSON = function (overpassQueryUrl, callbackNode, callbackWay, callbackRelation) {
+  var url = overpassQueryUrl.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
+  $.getJSON(url, function (json) {
+    POImap.parseOverpassJSON(json, callbackNode, callbackWay, callbackRelation);
+  });
 }
 
-function parseOverpassJSON(overpassJSON, callbackNode, callbackWay, callbackRelation) {
+POImap.parseOverpassJSON = function (overpassJSON, callbackNode, callbackWay, callbackRelation) {
   var nodes = {}, ways = {};
   for (var i = 0; i < overpassJSON.elements.length; i++) {
     var p = overpassJSON.elements[i];
@@ -89,4 +99,4 @@ function parseOverpassJSON(overpassJSON, callbackNode, callbackWay, callbackRela
         break;
     }
   }
-}
+};

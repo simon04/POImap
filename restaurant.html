@@ -10,7 +10,7 @@
   <script>
     var map, ids = {};
     $(function () {
-      map = initMap();
+      map = POImap.init();
       map.zoomIn();
       loadPoi();
       map.on('moveend', loadPoi);

@@ -11,7 +11,7 @@
     var map, layer;
     var nodes = {}, ways = {};
     $(function () {
-      map = initMap();
+      map = POImap.init();
       layer = new L.GeoJSON(null, {
         onEachFeature: function (e, layer) {
           if (e.properties && e.properties.name) layer.bindPopup(e.properties.name);
@@ -38,69 +38,72 @@
         return $('<div>').append(r).html();
       }
 
-      var poiUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
+      var handleNode = function (n) {
+        if (!n.tags || !n.tags.railway) return;
+        var icon = n.tags.railway == 'station'
+        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-18.png', size: 18}
+        : n.tags.railway == 'halt'
+        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
+        : undefined;
+        if (!icon) return;
+        map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
+          icon: L.icon({
+            iconUrl: icon.icon,
+            iconSize: new L.Point(icon.size, icon.size),
+            iconAnchor: new L.Point(icon.size/2, icon.size/2),
+            shadowSize: new L.Point(0, 0),
+          })
+        }).bindPopup(tagsTable(n.tags, 'n', n.id)));
+      };
 
-      $.getJSON(poiUrl, function(data) {
-        parseOverpassJSON(data, function (n) {
-          if (!n.tags || !n.tags.railway) return;
-          var icon = n.tags.railway == 'station'
-            ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-18.png', size: 18}
-            : n.tags.railway == 'halt'
-            ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
-            : undefined;
-          if (!icon) return;
-          map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
-            icon: L.icon({
-              iconUrl: icon.icon,
-              iconSize: new L.Point(icon.size, icon.size),
-              iconAnchor: new L.Point(icon.size/2, icon.size/2),
-              shadowSize: new L.Point(0, 0),
-            })
-          }).bindPopup(tagsTable(n.tags, 'n', n.id)));
-        }, function (w) {
-          if (ways[w.id] || !w.tags.railway) return;
-          if (-1 != $.inArray(w.tags.railway, ['tram', 'funicular'])) return;
-          /*
-          if (w.tags.bridge && w.tags.bridge != 'no')
-            layer.addGeoJSON({
-              type: 'Feature',
-              geometry: w.geometry,
-              properties: {style: {color: '#4E4D48', weight: 8}}
-            });
-          */
-          ways[w.id] = true;
-          var style = {};
-          style.color = -1 != $.inArray(w.tags.railway, ['rail', 'narrow_gauge', 'light_rail']) ? (!w.tags.usage
-            ? '#000000'
-            : w.tags.usage == 'industrial'
-            ? '#AC7812'
-            : w.tags.usage == 'branch'
-            ? '#4C5CB4'
-            : w.tags.usage == 'main'
-            ? '#00C819'
-            : w.tags.usage == 'highspeed'
-            ? '#D40000'
-            : '#d00')
-          : w.tags.railway == 'construction'
-          ? '#FFB600'
-          : w.tags.railway == 'disused'
-          ? '#000000' // dashed
-          : w.tags.railway == 'abandoned'
-          ? '#585858'
-          : '#20000000';
-          if (w.tags.tunnel == 'yes'
-            || w.tags.railway == 'construction'
-            || w.tags.railway == 'disused'
-            || w.tags.railway == 'abandoned')
-            style.svg = {'stroke-dasharray': '6,8'};
-          style.weight = w.tags.service ? 2 : 4;
-          layer.addData({
+      var handleWay = function (w) {
+        if (ways[w.id] || !w.tags.railway) return;
+        if (-1 != $.inArray(w.tags.railway, ['tram', 'funicular'])) return;
+        /*
+        if (w.tags.bridge && w.tags.bridge != 'no')
+          layer.addGeoJSON({
             type: 'Feature',
             geometry: w.geometry,
-            properties: {name: tagsTable(w.tags, 'w', w.id), style: style}
+            properties: {style: {color: '#4E4D48', weight: 8}}
           });
-        }, null);
-      });
+        */
+        ways[w.id] = true;
+        var style = {};
+        style.color = -1 != $.inArray(w.tags.railway, ['rail', 'narrow_gauge', 'light_rail']) ? (!w.tags.usage
+          ? '#000000'
+          : w.tags.usage == 'industrial'
+          ? '#AC7812'
+          : w.tags.usage == 'branch'
+          ? '#4C5CB4'
+          : w.tags.usage == 'main'
+          ? '#00C819'
+          : w.tags.usage == 'highspeed'
+          ? '#D40000'
+          : '#d00')
+        : w.tags.railway == 'construction'
+        ? '#FFB600'
+        : w.tags.railway == 'disused'
+        ? '#000000' // dashed
+        : w.tags.railway == 'abandoned'
+        ? '#585858'
+        : '#20000000';
+        if (w.tags.tunnel == 'yes'
+          || w.tags.railway == 'construction'
+          || w.tags.railway == 'disused'
+          || w.tags.railway == 'abandoned')
+          style.svg = {'stroke-dasharray': '6,8'};
+        style.weight = w.tags.service ? 2 : 4;
+        layer.addData({
+          type: 'Feature',
+          geometry: w.geometry,
+          properties: {name: tagsTable(w.tags, 'w', w.id), style: style}
+        });
+      };
+
+      POImap.loadAndParseOverpassJSON(
+          'http://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;',
+          handleNode, handleWay, null);
+
     }
 
   </script>
