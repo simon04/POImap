@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="http://code.jquery.com/jquery-latest.min.js"></script>
   <script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.js"></script>
+  <script src="semicircle.js"></script>
   <script src="map.js"></script>
   <script>
     var map;
@@ -36,18 +37,57 @@
         parseOverpassJSON(d, null, null, function (p) {
           var fc = featureCollections[p.tags.ref] || {type: 'FeatureCollection', features: []};
           featureCollections[p.tags.ref] = fc;
+
+          var stops = p.members.filter(function (mem) {
+            return mem.type == 'node' && mem.role.match(/stop/);// && mem.obj.tags.name && mem.obj.tags.name.match(/Klinik/);
+          }).map(function (mem) {
+            return mem.ref;
+          });
+
+          var stopAngle = {};
+          var getAngleForStop = function (stop) {
+            p.members.map(function (mem) {
+              if (mem.type != 'way') return;
+              // index of node in way
+              var idx = mem.obj.nodes.indexOf(stop);
+              if (idx < 0) return;
+              // take two adjacent ways
+              // ignore projection and use lat/lon directly (shouldn't make a big difference as 2 nodes are rather close)
+              var lonlat1 = mem.obj.coordinates[idx == 0 ? 0 : idx - 1];
+              var lonlat2 = mem.obj.coordinates[idx == 0 ? 1 : idx];
+              // determine in which order those two nodes are used
+              var polarity;
+              var idxWay = p.members.indexOf(mem);
+              if (idxWay == 0) {
+                // assumes ways in a block, i.e., w/o stops in between
+                // f first node linked to next way then -1 else +1
+                polarity = p.members[1].obj.nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 180 : 0;
+              } else {
+                // if first node linked to previous way then +1 else -1
+                polarity = p.members[idxWay - 1].obj.nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
+              }
+              // compute direciton, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
+              var angle = polarity + Math.atan2(lonlat2[1] - lonlat1[1], lonlat2[0] - lonlat1[0]) * 180 / Math.PI;
+              //console.log(p.tags.name, stop, mem.obj, idx, idx == 0 ? 0 : idx - 1, idx == 0 ? 1 : idx, lonlat1, lonlat2, idxWay, polarity, angle);
+              stopAngle[stop] = Math.round(angle);
+            });
+          };
+          stops.map(getAngleForStop);
+
           p.members.map(function (mem) {
-            if (!mem.obj) return;
-            var n = '<img src="http://efa.ivb.at/ivb/images/buttons/ivb_button_'
-                + p.tags.ref.toLowerCase() + '.png">'
-                + (mem.obj.tags && mem.obj.tags.name ? '&nbsp;' + mem.obj.tags.name : '');
+            if (!mem.obj || mem.role == 'platform') return;
             fc.features.push({
               type: 'Feature',
               geometry: mem.obj.geometry,
+              id: mem.obj.id,
               // Adapot style/color
-              properties: {name: n, style: {opacity: 1, color: p.tags.color || '#000000'}},
+              properties: {style: {opacity: 1, color: p.tags.color || '#000000'}},
               tags: mem.obj.tags,
               reltags: p.tags,
+              popup: '<img style="width:27px; height:27px" src="http://efa.ivb.at/ivb/images/buttons/ivb_button_'
+                + p.tags.ref.toLowerCase() + '.png">'
+                + (mem.obj.tags && mem.obj.tags.name ? '&nbsp;' + mem.obj.tags.name : ''),
+              angle: stopAngle[mem.ref],
             });
           });
         });
@@ -66,21 +106,27 @@
         // Displaying of points, e.g., halts
         pointToLayer: function (data, latlng) {
           // Adapot handling of duplicate stations of same line
-          if (!data.tags || !data.tags.name) return L.circleMarker(latlng, {weight: 0, fill: false});
-          var id = [data.reltags.ref, data.tags.name].join('/');
-          if (halts[id]) return L.circleMarker(latlng, {weight: 0, fill: false});
-          halts[id] = true;
-          // Adapt css classes of halt name
-          var className = 'leaflet-div-icon L' + data.reltags.ref + ' ' + data.tags.name.replace(/\/| /g, '-').replace(/\(|\)/g, '');
-          // Add halt name as DivIcon
-          L.marker(latlng, {
-            icon: L.divIcon({className: className, html: data.tags.name || ''}),
-          }).addTo(map);
+          if (data.tags && data.tags.name && data.id != 287054151) {
+            var id = [data.reltags.ref, data.tags.name].join('/');
+            if (!halts[id]) {
+              // Adapt css classes of halt name
+              var className = [
+                'leaflet-div-icon', 'L' + data.reltags.ref,
+                data.tags && data.tags.name ? data.tags.name.replace(/\/| /g, '-').replace(/\(|\)/g, '') : ''].join(' ');
+              // Add halt name as DivIcon
+              L.marker(latlng, {
+                icon: L.divIcon({className: className, html: data.tags.name || ''}),
+              }).addTo(map);
+              halts[id] = true;
+            }
+          }
           // Add/return halt as CircleMarker
-          return L.circleMarker(latlng, {fillOpacity: 0.5, weight: 5}).setRadius(4);
+          return typeof data.angle === 'undefined'
+            ? new L.CircleMarker(latlng, {fillOpacity: 1, weight: 0}).setRadius(4)
+            : new L.SemicircleMarker(latlng, {fillOpacity: 1, weight: 0}).setRadius(8).setAngle(-1 * data.angle);
         },
         onEachFeature: function (e, layer) {
-          layer.bindPopup(e.properties.name);
+          layer.bindPopup(e.popup);
         },
       }).addTo(map);
       map.getControl().addOverlay(layer, 'Linie ' + name);
@@ -118,7 +164,7 @@
       display: none;
     }
     .Maria-Theresien-Straße,
-    .Leipziger-Platz, .Philippine-Welser-Straße, .Triumphpforte,
+    .Leipziger-Platz, .Philippine-Welser-Straße,
     .Höttinger-Au-West, .Höttinger-Auffahrt,
     .Bretterkeller, .Tummelplatz, .Tantegert, .Lans-Sistrans, .Lansersee, .Bahnhof-Igls,
     .Mutters, .Burgstall, .Hölltal, .Gärberbach {
@@ -128,12 +174,12 @@
       width: 15em !important;
       white-space: inherit;
     }
-    .Fürstenweg,
+    .Fürstenweg, .Klinik-Universität,
     .Anichstraße-Rathausgalerien,
     .Fritz-Konzert-Straße {
       margin-top: -2em !important;
     }
-    .Bürgerstraße {
+    .Bürgerstraße, .Triumphpforte {
       margin-top: -2.5em !important;
       margin-left: 0em !important;
     }
