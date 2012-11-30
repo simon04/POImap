@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WIWOSM</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.js"></script>
+  <script src="semicircle.js"></script>
+  <script src="map.js"></script>
+  <script src="http://svn.osgeo.org/metacrs/proj4js/trunk/lib/proj4js-compressed.js"></script>
+  <script>
+    $(function () {
+      //var colors = ['A6CEE3', '1F78B4', 'B2DF8A', '33A02C', 'FB9A99', 'E31A1C', 'FDBF6F', 'FF7F00', 'CAB2D6', '6A3D9A', 'FFFF99'];
+      //var colors = ['e41a1c', '377eb8', '4daf4a', '984ea3', 'ff7f00'];
+      var colors = ['1b9e77', 'd95f02', '7570b3', 'e7298a', '66a61e', 'e6ab02', 'a6761d'];//, '666666'];
+      String.prototype.hashCode = function () {
+        var hash = 0;
+        for (i = 0; i < this.length; i++) {
+          hash = ((hash << 5) - hash) + this.charCodeAt(i);
+          hash = hash & hash;
+        }
+        return hash;
+      };
+      var unproject = function (cc) {
+        var source = new Proj4js.Proj('GOOGLE');
+        var dest = new Proj4js.Proj('WGS84');
+        var ll =  Proj4js.transform(source, dest, new Proj4js.Point(cc[0], cc[1]));
+        return [ll.x, ll.y];
+      };
+      var unprojectGeoJson = function (geojson) {
+        if (geojson && geojson.coordinates) {
+          geojson.coordinates = geojson.coordinates.map(function (line) {
+            return line.map(unproject);
+          });
+        }
+        return geojson;
+      };
+      var map = POImap.init();
+      $.getJSON('https://toolserver.org/~simon04/cats.php', {lang: 'de', cat: 'Bahnstrecke in Österreich'}, function (json) {
+        $(json.sort()).each(function (i, article) {
+          $.getJSON('https://toolserver.org/~simon04/getGeoJSON.php', {lang: 'de', article: article}, function (geojson) {
+            article = article.replace(/_/g, ' ');
+            geojson = unprojectGeoJson(geojson);
+            var layer = L.geoJson(geojson, {
+              style: function (feature) {
+                return {color: '#' + colors[Math.abs(article.hashCode()) % colors.length]};
+              },
+              onEachFeature: function (feature, layer) {
+                layer.bindPopup('<a href="http://de.wikipedia.org/wiki/' + article.replace(/ /g, '_') + '" target="_blank">' + article + '</a>');
+              },
+            }).addTo(map);
+            map.getControl().addOverlay(layer, article);
+          });
+        });
+      });
+    });
+  </script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.ie.css" /><![endif]-->
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    html, body, #map {
+      height: 100%;
+      font: 12px 'Droid Sans', sans-serif;
+    }
+    .leaflet-tile {
+      -webkit-filter: grayscale(1);
+      opacity: 0.5 !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+</html>
+
