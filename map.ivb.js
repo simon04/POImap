@@ -66,16 +66,24 @@ IVB.getStopAngles = function (relation) {
       var lonlat2 = mem.obj.coordinates[idx == 0 ? 1 : idx];
       // determine in which order those two nodes are used
       var polarity;
-      var idxWay = relation.members.indexOf(mem);
-      if (idxWay == 0) {
+      var idxWay = relation.members.filter(function (r) {
+        return r.obj.type == 'way' && r.role != 'platform';
+      }).indexOf(mem);
+      if (idxWay < 0) {
+        // ignore
+      } else if (idxWay == 0) {
         // assumes ways in a block, i.e., w/o stops in between
         // f first node linked to next way then -1 else +1
-        polarity = relation.members[1].obj.nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 180 : 0;
+        var nodes = relation.members[1].obj.nodes;
+        if (!nodes) return;
+        polarity = nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 180 : 0;
       } else {
         // if first node linked to previous way then +1 else -1
-        polarity = relation.members[idxWay - 1].obj.nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
+        var nodes = relation.members[idxWay - 1].obj.nodes;
+        if (!nodes) return;
+        polarity = nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
       }
-      // compute direciton, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
+      // compute direction, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
       var angle = polarity + Math.atan2(lonlat2[1] - lonlat1[1], lonlat2[0] - lonlat1[0]) * 180 / Math.PI;
       //console.log(relation.tags.name, stop, mem.obj, idx, idx == 0 ? 0 : idx - 1, idx == 0 ? 1 : idx, lonlat1, lonlat2, idxWay, polarity, angle);
       stopAngle[stop] = Math.round(angle);
