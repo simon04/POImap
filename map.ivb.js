@@ -103,7 +103,8 @@ IVB.addLine = function (lineref, geojson) {
   var layer = L.geoJson(geojson, {
     style: function (p) {
       // Adapt style/color
-      return {opacity: 1, color: p.reltags.color || '#000000'};
+      var color = p.reltags.colour || p.reltags.color || '000000';
+      return {opacity: 1, color: color.charAt(0) == '#' ? color : ('#' + color)};
     },
     pointToLayer: IVB.addStop,
     onEachFeature: IVB.bindPopup,
