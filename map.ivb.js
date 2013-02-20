@@ -4,17 +4,13 @@ IVB.layers = {};
 IVB.init = function () {
   // init map
   IVB.map = POImap.init();
+  IVB.map.setView([48.2, 16.37], 13);
   // init stop labels layer
   IVB.layers.stopLabels = L.layerGroup().addTo(IVB.map);
   IVB.map.getControl().addOverlay(IVB.layers.stopLabels, 'Haltestellen');
-  // init proposed line extensions
-  IVB.layers.proposed = L.layerGroup();
-  IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
-  var extensionUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway=proposed];node(w););out body;';
-  POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
   var linesUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];'
-  + '(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][route=tram][ref~"1|3|6|STB"][name!="IVB Linie 3"];node(r)->.x;way(r);node(w););out body;';
+  + '(relation[operator="ÖBB"][name~"Schnellbahn"][ref~"S1|S2|S3|S7|S40|S45|S50|S60|S80"][ref!~S15][type=route];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
 
@@ -126,22 +122,32 @@ IVB.addStop = function (data, latlng) {
         'leaflet-div-icon', 'L' + data.reltags.ref,
         data.tags && data.tags.name ? data.tags.name.replace(/\/| /g, '-').replace(/\(|\)/g, '') : ''].join(' ');
         // Add halt name as DivIcon
+        var icon = L.divIcon({className: className, html: data.tags.name || ''});
+        icon._createIcon = icon.createIcon;
+        icon.createIcon = function () {
+          var div = this._createIcon();
+          var span = document.createElement('span');
+          span.innerHTML = div.innerHTML;
+          span.className = data.angle ? ('angle' + (Math.floor(data.angle / 45) * 45)) : '';
+          div.innerHTML = '';
+          div.appendChild(span);
+          return div;
+        };
         L.marker(latlng, {
-          icon: L.divIcon({className: className, html: data.tags.name || ''}),
+          icon: icon,
         }).addTo(IVB.layers.stopLabels);
         IVB.halts[id] = true;
     }
   }
   // Add/return halt as CircleMarker
-  return typeof data.angle === 'undefined'
-  ? new L.CircleMarker(latlng, {fillOpacity: 1, weight: 0}).setRadius(4)
+  return true
+  ? new L.CircleMarker(latlng, {fillOpacity: 1, weight: 0}).setRadius(8)
   : new L.SemicircleMarker(latlng, {fillOpacity: 1, weight: 0}).setRadius(8).setAngle(-1 * data.angle);
 };
 
 IVB.bindPopup = function (p, l) {
   // Adapt popup
-  l.bindPopup('<img style="width:27px; height:27px" src="http://efa.ivb.at/ivb/images/buttons/ivb_button_'
-    + p.reltags.ref.toLowerCase() + '.png">'
+  l.bindPopup('<b style="border:1px solid black; padding: 0 2px;">' + p.reltags.ref + '</b>'
     + (p.tags && p.tags.name ? '&nbsp;' + p.tags.name : '')
   );
 };
