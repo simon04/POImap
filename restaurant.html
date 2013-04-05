@@ -4,9 +4,14 @@
   <title>Restaurant Map</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .hover { background-color:red; }
+    .leaflet-marker-icon:hover { background-color:green; }
+  </style>
   <script src="http://code.jquery.com/jquery-latest.min.js"></script>
   <script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.js"></script>
   <script src="map.js"></script>
+  <script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b1.5.min.js"></script>
   <script>
     var map, ids = {};
     $(function () {
@@ -20,34 +25,65 @@
       if (map.getZoom() < 14) {
         return;
       }
-      // Maki: restaurant-18 from MapBox (http://mapbox.com/maki/)
       var restaurantIcon = L.icon({
-        //iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEX///////9vb2////////////////9ZWVn///9JSUlcXFz///+JiYn///////////////////96enr///9SUlL///9fX19JSUn///////////9NTU2AgID///9ERETA5D9xAAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //black
-        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEUAAAD///+KU1P///////////////9xQED///9fMjJ1QkL///+jbm7///////////////////+XXFz///9pOjr///94RUVfMjL///////////9kNTWdYmL///9bLS2eoyA3AAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //darkred
-        iconSize: new L.Point(18, 18),
-        iconAnchor: new L.Point(9, 9),
-        shadowSize: new L.Point(0, 0),
+        iconUrl: '/restaurant.p.16.png',
+        iconSize: new L.Point(16, 16),
+        iconAnchor: new L.Point(8, 8),
       });
 
-      var poiUrl = 'http://overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity=restaurant];out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
-
-      var poiInfo = function(tags) {
+      function fillPopup(tags) {
         var r = $('<table>');
-        for (key in tags)
-          r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
+        for (key in tags) {
+          if ( key == 'website' || key == 'url' || key == 'contact:website' ) {
+            var value = tags[key];
+            var teststr=/^http/;
+            if ( ! teststr.test(value) )
+              value = "http://" + value;
+              
+            var htlink = '<a href="' + value + '">' + value + '</a>';
+            r.append($('<tr>').append($('<th>').text(key)).append($('<td>').append(htlink)));
+          }
+          else {
+            r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
+          }
+
+        }
         return $('<div>').append(r).html();
       }
 
-      $.getJSON(poiUrl, function(data) {
-        $.each(data.elements, function(ign, i) {
-          if (i.id in ids) return;
-          ids[i.id] = true;
-          L.marker([i.lat, i.lon], {
-            icon: restaurantIcon,
-            title: i.tags.name
-          }).bindPopup(poiInfo(i.tags)).addTo(map);
+
+      var restaurantUrl = 'http://overpass-api.de/api/interpreter?data=[out:json];(node(BBOX)[amenity=restaurant]);out;(way(BBOX)[amenity=restaurant];node(w));out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
+
+      function bindPopupOnData(data) {
+        var lmarker = L.marker([data.lat, data.lon], {
+          icon: restaurantIcon,
+          title: data.tags.name
         });
-      });
+        lmarker.bindPopup(fillPopup(data.tags)).addTo(map);
+      }
+
+      function nodeFunction(data) {
+        if (! data.tags || ! data.tags.amenity ) return;
+        bindPopupOnData(data);
+      }
+      function wayFunction(data) {
+        //calculate centre of polygon
+
+        var centroid = $.geo.centroid(data.geometry);
+        //var style = {};
+        centroid.tags = data.tags;
+        centroid.lon = centroid.coordinates[0];
+        centroid.lat = centroid.coordinates[1];
+        bindPopupOnData(centroid);
+        return;
+      };
+
+      function handleNodeWayRelations(data) {
+        parseOverpassJSON(data, nodeFunction, wayFunction, null);
+      }
+
+      $.getJSON(restaurantUrl, handleNodeWayRelations);
+
     }
 
   </script>
