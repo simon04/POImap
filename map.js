@@ -12,7 +12,7 @@ POImap.init = function () {
   map = new L.Map('map', {
     center: new L.LatLng(47.2632776, 11.4010086),
       zoom: 13,
-      layers: osm,
+      layers: osm
   });
 
   map.getControl = function () {
@@ -20,11 +20,11 @@ POImap.init = function () {
        'OpenSteetMap': osm,
        'OpenSteetMap (no labels)': osm_no,
        'OpenSteetMap (black/white)': osm_bw,
-       'Transport Map': transport,
+       'Transport Map': transport
     });
     return function () {
       return ctrl;
-    }
+    };
   }();
   map.addControl(map.getControl());
 
@@ -32,15 +32,15 @@ POImap.init = function () {
     var a = this._southWest,
         b = this._northEast;
     return [a.lat, a.lng, b.lat, b.lng].join(",");
-  }
+  };
 
   var path_style = L.Path.prototype._updateStyle;
   L.Path.prototype._updateStyle = function () {
     path_style.apply(this);
-    for (k in this.options.svg) {
+    for (var k in this.options.svg) {
       this._path.setAttribute(k, this.options.svg[k]);
     }
-  }
+  };
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function (position) {
@@ -58,7 +58,7 @@ POImap.loadAndParseOverpassJSON = function (overpassQueryUrl, callbackNode, call
   $.getJSON(url, function (json) {
     POImap.parseOverpassJSON(json, callbackNode, callbackWay, callbackRelation);
   });
-}
+};
 
 POImap.parseOverpassJSON = function (overpassJSON, callbackNode, callbackWay, callbackRelation) {
   var nodes = {}, ways = {};

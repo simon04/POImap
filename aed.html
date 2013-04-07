@@ -19,22 +19,21 @@
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Automated_External_Defibrillator_%28symbol%29.svg/16px-Automated_External_Defibrillator_%28symbol%29.svg.png',
         iconSize: new L.Point(16, 16),
         iconAnchor: new L.Point(8, 8),
-        shadowSize: new L.Point(0, 0),
+        shadowSize: new L.Point(0, 0)
       });
 
       var aedUrl = 'http://overpass-api.de/api/interpreter?data=[out:json];node[emergency=aed];out;node[medical=aed];out;';
       var aedInfo = function(tags) {
         var r = $('<table>');
-        for (key in tags)
+        for (var key in tags)
           r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
-      }
+      };
       $.getJSON(aedUrl, function(data) {
         $.each(data.elements, function(ign, i) {
           var pos = new L.LatLng(i.lat, i.lon);
-          var icon = aedIcon;
           var popup = aedInfo(i.tags);
-          var marker = new L.Marker(pos, {icon: icon}).bindPopup(popup);
+          var marker = new L.Marker(pos, {icon: aedIcon}).bindPopup(popup);
           map.addLayer(marker);
         });
       });

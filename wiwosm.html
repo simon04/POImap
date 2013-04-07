@@ -48,7 +48,7 @@
               },
               onEachFeature: function (feature, layer) {
                 layer.bindPopup('<a href="http://de.wikipedia.org/wiki/' + article.replace(/ /g, '_') + '" target="_blank">' + article + '</a>');
-              },
+              }
             }).addTo(map);
             map.getControl().addOverlay(layer, article);
           });

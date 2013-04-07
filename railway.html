@@ -16,7 +16,7 @@
         onEachFeature: function (e, layer) {
           if (e.properties && e.properties.name) layer.bindPopup(e.properties.name);
           if (e.properties && e.properties.style) layer.setStyle(e.properties.style);
-        },
+        }
       });
       map.addLayer(layer);
       map.zoomIn();
@@ -33,10 +33,10 @@
         var r = $('<table>');
         if (type && id)
           r.append($('<tr>').append($('<th>').text('ID')).append($('<td>').text(id).append(' ').append($('<a>').attr({href: 'href="http://localhost:8111/load_object?objects='+type+id, target: '_blank'}).text('edit')).append(' ').append($('<a>').attr({href: 'http://www.openstreetmap.org/browse/'+{w:'way',n:'node',r:'relation'}[type]+'/'+id, target: '_blank'}).text('browse'))));
-        for (key in tags)
+        for (var key in tags)
           r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
-      }
+      };
 
       var handleNode = function (n) {
         if (!n.tags || !n.tags.railway) return;
@@ -51,7 +51,7 @@
             iconUrl: icon.icon,
             iconSize: new L.Point(icon.size, icon.size),
             iconAnchor: new L.Point(icon.size/2, icon.size/2),
-            shadowSize: new L.Point(0, 0),
+            shadowSize: new L.Point(0, 0)
           })
         }).bindPopup(tagsTable(n.tags, 'n', n.id)));
       };
