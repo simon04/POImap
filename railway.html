@@ -24,6 +24,7 @@
       map.on('moveend', loadPoi);
     });
 
+    var addedStopLabels = {};
     function loadPoi() {
       if (map.getZoom() < 12) {
         return;
@@ -46,6 +47,10 @@
         ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
         : undefined;
         if (!icon) return;
+        if (!addedStopLabels[n.tags.name]) {
+          map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {icon: L.divIcon({html: n.tags.name})}));
+          addedStopLabels[n.tags.name] = true;
+        }
         map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
           icon: L.icon({
             iconUrl: icon.icon,
@@ -116,6 +121,17 @@
     }
     html, body, #map {
       height: 100%;
+      font: 10pt 'Droid Sans', sans-serif;
+    }
+    .leaflet-div-icon {
+      width: auto !important;
+      height: auto !important;
+      border: none;
+      background: none;
+      text-shadow: 1px 1px 2px white;
+      font-weight: bold;
+      white-space: nowrap;
+      margin: -10px 0 0 10px !important;
     }
   </style>
 </head>
