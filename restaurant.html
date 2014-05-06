@@ -26,17 +26,17 @@
         iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAXVBMVEUAAAD///+KU1P///////////////9xQED///9fMjJ1QkL///+jbm7///////////////////+XXFz///9pOjr///94RUVfMjL///////////9kNTWdYmL///9bLS2eoyA3AAAAHnRSTlMATKY/JkhAyBLwxUqIKhE9AkSZLtk0v/IFBkHmkTPuNN4DAAAAaElEQVR4Xp3INxbDIAAE0V2RlINz3Psf0zR6DwxuPMUUHz+ydI4W9+N23olqGvFmDk/mZF/SF70vGcW4nBIaOqkb3DWhaZTGiUpopcQ1I1AiKmT6gmYWhD/o0QcP+BC/Ny+mBVoTX+0DgJ0JB2LUDeEAAAAASUVORK5CYII=', //darkred
         iconSize: new L.Point(18, 18),
         iconAnchor: new L.Point(9, 9),
-        shadowSize: new L.Point(0, 0),
+        shadowSize: new L.Point(0, 0)
       });
 
       var poiUrl = 'http://overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity=restaurant];out;'.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
 
       var poiInfo = function(tags) {
         var r = $('<table>');
-        for (key in tags)
+        for (var key in tags)
           r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
-      }
+      };
 
       $.getJSON(poiUrl, function(data) {
         $.each(data.elements, function(ign, i) {

@@ -18,16 +18,16 @@ IVB.displayExtension = function (layer) {
   return function (w) {
     L.geoJson({
       type: 'Feature',
-      geometry: w.geometry,
+      geometry: w.geometry
     }, {
       style: function (e) {
         return {
           opacity: 1,
           color: '#666',
           //svg: {'stroke-dasharray': '6,8'},
-          weight: 3,
+          weight: 3
         };
-      },
+      }
     }).addTo(layer);
   };
 };
@@ -43,7 +43,7 @@ IVB.handleRelation = function (p) {
       id: mem.obj.id,
       tags: mem.obj.tags,
       reltags: p.tags,
-      angle: stopAngles[mem.ref],
+      angle: stopAngles[mem.ref]
     });
   });
 };
@@ -58,8 +58,8 @@ IVB.getStopAngles = function (relation) {
       if (idx < 0) return;
       // take two adjacent ways
       // ignore projection and use lat/lon directly (shouldn't make a big difference as 2 nodes are rather close)
-      var lonlat1 = mem.obj.coordinates[idx == 0 ? 0 : idx - 1];
-      var lonlat2 = mem.obj.coordinates[idx == 0 ? 1 : idx];
+      var lonlat1 = mem.obj.coordinates[idx === 0 ? 0 : idx - 1];
+      var lonlat2 = mem.obj.coordinates[idx === 0 ? 1 : idx];
       // determine in which order those two nodes are used
       var polarity;
       var idxWay = relation.members.filter(function (r) {
@@ -67,7 +67,7 @@ IVB.getStopAngles = function (relation) {
       }).indexOf(mem);
       if (idxWay < 0) {
         // ignore
-      } else if (idxWay == 0) {
+      } else if (idxWay === 0) {
         // assumes ways in a block, i.e., w/o stops in between
         // f first node linked to next way then -1 else +1
         var nodes = relation.members[1].obj.nodes;
@@ -75,9 +75,9 @@ IVB.getStopAngles = function (relation) {
         polarity = nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 180 : 0;
       } else {
         // if first node linked to previous way then +1 else -1
-        var nodes = relation.members[idxWay - 1].obj.nodes;
-        if (!nodes) return;
-        polarity = nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
+        var relNodes = relation.members[idxWay - 1].obj.nodes;
+        if (!relNodes) return;
+        polarity = relNodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
       }
       // compute direction, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
       var angle = polarity + Math.atan2(lonlat2[1] - lonlat1[1], lonlat2[0] - lonlat1[0]) * 180 / Math.PI;
@@ -103,7 +103,7 @@ IVB.addLine = function (lineref, geojson) {
       return {opacity: 1, color: color.charAt(0) == '#' ? color : ('#' + color)};
     },
     pointToLayer: IVB.addStop,
-    onEachFeature: IVB.bindPopup,
+    onEachFeature: IVB.bindPopup
   }).addTo(IVB.layers[lineref] || IVB.map);
   if (!IVB.layers[lineref]) {
     IVB.layers[lineref] = layer;
@@ -151,4 +151,3 @@ IVB.bindPopup = function (p, l) {
     + (p.tags && p.tags.name ? '&nbsp;' + p.tags.name : '')
   );
 };
-

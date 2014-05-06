@@ -16,7 +16,7 @@
         onEachFeature: function (e, layer) {
           if (e.properties && e.properties.name) layer.bindPopup(e.properties.name);
           if (e.properties && e.properties.style) layer.setStyle(e.properties.style);
-        },
+        }
       });
       map.addLayer(layer);
       map.zoomIn();
@@ -24,6 +24,7 @@
       map.on('moveend', loadPoi);
     });
 
+    var addedStopLabels = {};
     function loadPoi() {
       if (map.getZoom() < 12) {
         return;
@@ -33,25 +34,29 @@
         var r = $('<table>');
         if (type && id)
           r.append($('<tr>').append($('<th>').text('ID')).append($('<td>').text(id).append(' ').append($('<a>').attr({href: 'href="http://localhost:8111/load_object?objects='+type+id, target: '_blank'}).text('edit')).append(' ').append($('<a>').attr({href: 'http://www.openstreetmap.org/browse/'+{w:'way',n:'node',r:'relation'}[type]+'/'+id, target: '_blank'}).text('browse'))));
-        for (key in tags)
+        for (var key in tags)
           r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
-      }
+      };
 
       var handleNode = function (n) {
         if (!n.tags || !n.tags.railway) return;
         var icon = n.tags.railway == 'station'
-        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-18.png', size: 18}
+        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png', size: 18}
         : n.tags.railway == 'halt'
-        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
+        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png', size: 12}
         : undefined;
         if (!icon) return;
+        if (!addedStopLabels[n.tags.name]) {
+          map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {icon: L.divIcon({html: n.tags.name})}));
+          addedStopLabels[n.tags.name] = true;
+        }
         map.addLayer(new L.Marker(new L.LatLng(n.lat, n.lon), {
           icon: L.icon({
             iconUrl: icon.icon,
             iconSize: new L.Point(icon.size, icon.size),
             iconAnchor: new L.Point(icon.size/2, icon.size/2),
-            shadowSize: new L.Point(0, 0),
+            shadowSize: new L.Point(0, 0)
           })
         }).bindPopup(tagsTable(n.tags, 'n', n.id)));
       };
@@ -116,6 +121,17 @@
     }
     html, body, #map {
       height: 100%;
+      font: 10pt 'Droid Sans', sans-serif;
+    }
+    .leaflet-div-icon {
+      width: auto !important;
+      height: auto !important;
+      border: none;
+      background: none;
+      text-shadow: 1px 1px 2px white;
+      font-weight: bold;
+      white-space: nowrap;
+      margin: -10px 0 0 10px !important;
     }
   </style>
 </head>
