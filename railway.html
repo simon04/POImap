@@ -42,9 +42,9 @@
       var handleNode = function (n) {
         if (!n.tags || !n.tags.railway) return;
         var icon = n.tags.railway == 'station'
-        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-18.png', size: 18}
+        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png', size: 18}
         : n.tags.railway == 'halt'
-        ? {icon: 'https://github.com/mapbox/maki/raw/gh-pages/renders/rail-12.png', size: 12}
+        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png', size: 12}
         : undefined;
         if (!icon) return;
         if (!addedStopLabels[n.tags.name]) {
