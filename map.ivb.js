@@ -14,7 +14,7 @@ IVB.init = function () {
   POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
   var linesUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];'
-  + '(relation[operator="Innsbrucker Verkehrsbetriebe"][type=route][route=tram][ref~"1|3|6|STB"][name!="IVB Linie 3"];node(r)->.x;way(r);node(w););out body;';
+  + '(relation[operator="IVB"][type=route][route=tram][ref~"1|3|6|STB"];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
 
