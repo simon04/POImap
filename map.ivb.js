@@ -10,10 +10,10 @@ IVB.init = function () {
   // init proposed line extensions
   IVB.layers.proposed = L.layerGroup();
   IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
-  var extensionUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway=proposed];node(w););out body;';
+  var extensionUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway=proposed];node(w););out body;';
   POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
-  var linesUrl = 'http://www.overpass-api.de/api/interpreter?data=[out:json];'
+  var linesUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];'
   + '(relation[operator="IVB"][type=route][route=tram][ref~"1|3|6|STB"];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
@@ -140,7 +140,7 @@ IVB.addStop = function (data, latlng) {
 
 IVB.bindPopup = function (p, l) {
   // Adapt popup
-  l.bindPopup('<img style="width:27px; height:27px" src="http://efa.ivb.at/ivb/images/buttons/ivb_button_'
+  l.bindPopup('<img style="width:27px; height:27px" src="//efa.ivb.at/ivb/images/buttons/ivb_button_'
     + p.reltags.ref.toLowerCase() + '.png">'
     + (p.tags && p.tags.name ? '&nbsp;' + p.tags.name : '')
   );

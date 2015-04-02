@@ -4,8 +4,8 @@
   <title>Railway Map</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <script src="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.js"></script>
+  <script src="//code.jquery.com/jquery-latest.min.js"></script>
+  <script src="//cdn.leafletjs.com/leaflet-0.4.5/leaflet.js"></script>
   <script src="map.js"></script>
   <script>
     var map, layer;
@@ -33,7 +33,7 @@
       var tagsTable = function(tags, type, id) {
         var r = $('<table>');
         if (type && id)
-          r.append($('<tr>').append($('<th>').text('ID')).append($('<td>').text(id).append(' ').append($('<a>').attr({href: 'href="http://localhost:8111/load_object?objects='+type+id, target: '_blank'}).text('edit')).append(' ').append($('<a>').attr({href: 'http://www.openstreetmap.org/browse/'+{w:'way',n:'node',r:'relation'}[type]+'/'+id, target: '_blank'}).text('browse'))));
+          r.append($('<tr>').append($('<th>').text('ID')).append($('<td>').text(id).append(' ').append($('<a>').attr({href: 'href="//localhost:8111/load_object?objects='+type+id, target: '_blank'}).text('edit')).append(' ').append($('<a>').attr({href: '//www.openstreetmap.org/browse/'+{w:'way',n:'node',r:'relation'}[type]+'/'+id, target: '_blank'}).text('browse'))));
         for (var key in tags)
           r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
         return $('<div>').append(r).html();
@@ -42,9 +42,9 @@
       var handleNode = function (n) {
         if (!n.tags || !n.tags.railway) return;
         var icon = n.tags.railway == 'station'
-        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png', size: 18}
+        ? {icon: '//raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png', size: 18}
         : n.tags.railway == 'halt'
-        ? {icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png', size: 12}
+        ? {icon: '//raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png', size: 12}
         : undefined;
         if (!icon) return;
         if (!addedStopLabels[n.tags.name]) {
@@ -106,14 +106,14 @@
       };
 
       POImap.loadAndParseOverpassJSON(
-          'http://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;',
+          '//www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;',
           handleNode, handleWay, null);
 
     }
 
   </script>
-  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.css" />
-  <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.ie.css" /><![endif]-->
+  <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.4.5/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.4.5/leaflet.ie.css" /><![endif]-->
   <style>
     body {
       padding: 0;
