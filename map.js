@@ -17,9 +17,9 @@ POImap.init = function () {
 
   map.getControl = function () {
     var ctrl = new L.Control.Layers({
-       'OpenSteetMap': osm,
-       'OpenSteetMap (no labels)': osm_no,
-       'OpenSteetMap (black/white)': osm_bw,
+       'OpenStreetMap': osm,
+       'OpenStreetMap (no labels)': osm_no,
+       'OpenStreetMap (black/white)': osm_bw,
        'Transport Map': transport
     });
     return function () {
