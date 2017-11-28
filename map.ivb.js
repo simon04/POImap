@@ -64,27 +64,24 @@ IVB.getStopAngles = function (relation) {
       // ignore projection and use lat/lon directly (shouldn't make a big difference as 2 nodes are rather close)
       var lonlat1 = mem.obj.coordinates[idx === 0 ? 0 : idx - 1];
       var lonlat2 = mem.obj.coordinates[idx === 0 ? 1 : idx];
+      // compute direction, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
+      var angle = Math.atan2(lonlat2[1] - lonlat1[1], lonlat2[0] - lonlat1[0]) * 180 / Math.PI;
       // determine in which order those two nodes are used
-      var polarity;
-      var idxWay = relation.members.filter(function (r) {
+      var wayMembers = relation.members.filter(function (r) {
         return r.obj.type == 'way' && r.role != 'platform';
-      }).indexOf(mem);
+      });
+      var idxWay = wayMembers.indexOf(mem);
       if (idxWay < 0) {
         // ignore
-      } else if (idxWay === 0) {
-        // assumes ways in a block, i.e., w/o stops in between
-        // f first node linked to next way then -1 else +1
-        var nodes = relation.members[1].obj.nodes;
-        if (!nodes) return;
-        polarity = nodes.indexOf(mem.obj.nodes[0]) >= 0 ? 180 : 0;
       } else {
+        // assumes ways in a block, i.e., w/o stops in between
         // if first node linked to previous way then +1 else -1
-        var relNodes = relation.members[idxWay - 1].obj.nodes;
-        if (!relNodes) return;
-        polarity = relNodes.indexOf(mem.obj.nodes[0]) >= 0 ? 0 : 180;
+        var way1 = idxWay === 0 ? wayMembers[0] : wayMembers[idxWay - 1];
+        var way2 = idxWay === 0 ? wayMembers[1] : wayMembers[idxWay];
+        if (!way1.obj.nodes || !way2.obj.nodes) return;
+        var way1Before2 = way2.obj.nodes.indexOf(way1.obj.nodes[0]) === -1;
+        angle += way1Before2 ? 0 : 180;
       }
-      // compute direction, i.e., angle (with mathematical meaning: 0=horizontal, anti-clockwise)
-      var angle = polarity + Math.atan2(lonlat2[1] - lonlat1[1], lonlat2[0] - lonlat1[0]) * 180 / Math.PI;
       //console.log(relation.tags.name, stop, mem.obj, idx, idx == 0 ? 0 : idx - 1, idx == 0 ? 1 : idx, lonlat1, lonlat2, idxWay, polarity, angle);
       stopAngle[stop] = Math.round(angle);
     });
