@@ -10,11 +10,11 @@ IVB.init = function () {
   // init proposed line extensions
   IVB.layers.proposed = L.layerGroup();
   IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
-  var extensionUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway=proposed];node(w););out body;';
+  var extensionUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway~"construction|proposed"][construction!=rail];node(w););out body;';
   POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
   var linesUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];'
-  + '(relation[operator="IVB"][type=route][route=tram][ref~"1|3|6|STB"];node(r)->.x;way(r);node(w););out body;';
+  + '(relation[operator="IVB"][type=route][route~"tram|train"][ref~"1|3|6|STB"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
 
