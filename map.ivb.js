@@ -4,6 +4,7 @@ IVB.layers = {};
 IVB.init = function () {
   // init map
   IVB.map = POImap.init();
+  IVB.map.setZoom(15);
   // init stop labels layer
   IVB.layers.stopLabels = L.layerGroup().addTo(IVB.map);
   IVB.map.getControl().addOverlay(IVB.layers.stopLabels, 'Haltestellen');
@@ -27,7 +28,7 @@ IVB.displayExtension = function (layer) {
       style: function (e) {
         return {
           opacity: 1,
-          color: '#666',
+          color: '#999',
           //svg: {'stroke-dasharray': '6,8'},
           weight: 3
         };
