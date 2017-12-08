@@ -15,7 +15,7 @@ IVB.init = function () {
   POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
   var linesUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];'
-  + '(relation[operator="IVB"][type=route][route~"tram|train"][ref~"1|3|6|STB"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
+  + '(relation[type=route][route~"tram|train"][name="Christkindlbahn Innsbruck"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
 
@@ -105,7 +105,7 @@ IVB.addLine = function (lineref, geojson) {
       return {opacity: 1, color: color.charAt(0) == '#' ? color : ('#' + color)};
     },
     pointToLayer: IVB.addStop,
-    onEachFeature: IVB.bindPopup
+    // onEachFeature: IVB.bindPopup
   }).addTo(IVB.layers[lineref] || IVB.map);
   if (!IVB.layers[lineref]) {
     IVB.layers[lineref] = layer;
