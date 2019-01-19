@@ -15,7 +15,7 @@ IVB.init = function () {
   POImap.loadAndParseOverpassJSON(extensionUrl, null, IVB.displayExtension(IVB.layers.proposed), null);
   // load route relations
   var linesUrl = '//www.overpass-api.de/api/interpreter?data=[out:json];'
-  + '(relation[operator="IVB"][type=route][route~"tram|train"][ref~"1|3|6|STB"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
+  + '(relation[operator="IVB"][type=route][route~"tram|light_rail|train"][ref~"1|2|3|5|6|STB"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
 };
 
@@ -138,8 +138,7 @@ IVB.addStop = function (data, latlng) {
 
 IVB.bindPopup = function (p, l) {
   // Adapt popup
-  l.bindPopup('<img style="width:27px; height:27px" src="//efa.ivb.at/ivb/images/buttons/ivb_button_'
-    + p.reltags.ref.toLowerCase() + '.png">'
+  l.bindPopup('<b>' + p.reltags.ref + '</b>'
     + (p.tags && p.tags.name ? '&nbsp;' + p.tags.name : '')
   );
 };
