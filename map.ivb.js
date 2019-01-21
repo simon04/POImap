@@ -117,6 +117,7 @@ IVB.addLine = function (lineref, geojson) {
 IVB.addStop = function (data, latlng) {
   // Adapt handling of duplicate stations of same line
   if (data.tags && data.tags.name && data.id != 287054151) {
+    data.tags.name = data.tags.name.replace(/^Innsbruck /, '');
     var id = [data.reltags.ref, data.tags.name].join('/');
     if (!IVB.halts[id]) {
       // Adapt css classes of halt name
