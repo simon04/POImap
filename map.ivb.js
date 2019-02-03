@@ -11,6 +11,7 @@ IVB.init = function() {
   // init proposed line extensions
   IVB.layers.proposed = L.layerGroup();
   IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
+  L.control.scale({imperial: false}).addTo(IVB.map);
   var extensionUrl =
     '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway~"construction|proposed"][construction!=rail];node(w););out body;';
   POImap.loadAndParseOverpassJSON(
