@@ -8,6 +8,8 @@ IVB.init = function() {
   // init stop labels layer
   IVB.layers.stopLabels = L.layerGroup().addTo(IVB.map);
   IVB.map.getControl().addOverlay(IVB.layers.stopLabels, 'Haltestellen');
+  IVB.layers.stopCatchment = L.layerGroup().addTo(IVB.map);
+  IVB.map.getControl().addOverlay(IVB.layers.stopCatchment, 'Einzugsgebiet');
   // init proposed line extensions
   IVB.layers.proposed = L.layerGroup();
   IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
@@ -149,6 +151,10 @@ IVB.addStop = function(data, latlng) {
         icon: L.divIcon({className: className, html: data.tags.name || ''})
       }).addTo(IVB.layers.stopLabels);
       IVB.halts[id] = true;
+    }
+    if (!IVB.halts[data.tags.name]) {
+      L.circle(latlng, 300, {color: '#666', weight: 2}).addTo(IVB.layers.stopCatchment);
+      IVB.halts[data.tags.name] = true;
     }
   }
   // Add/return halt as CircleMarker
