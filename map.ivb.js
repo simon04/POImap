@@ -13,7 +13,10 @@ IVB.init = function() {
   // init proposed line extensions
   IVB.layers.proposed = L.layerGroup();
   IVB.map.getControl().addOverlay(IVB.layers.proposed, 'Erweiterung');
+  IVB.layers.frequency = L.layerGroup();
+  IVB.map.getControl().addOverlay(IVB.layers.frequency, 'Frequenz');
   L.control.scale({imperial: false}).addTo(IVB.map);
+  IVB.frequencyBySegment = L.layerGroup();
   var extensionUrl =
     '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway~"construction|proposed"][construction!=rail];node(w););out body;';
   POImap.loadAndParseOverpassJSON(
@@ -25,8 +28,14 @@ IVB.init = function() {
   // load route relations
   var linesUrl =
     '//www.overpass-api.de/api/interpreter?data=[out:json];' +
-    '(relation[operator="IVB"][type=route][route~"tram|light_rail|train"][ref~"1|2|3|5|6|STB"]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
-  POImap.loadAndParseOverpassJSON(linesUrl, null, null, IVB.handleRelation);
+    '(relation[operator="IVB"][type=route]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
+  POImap.loadAndParseOverpassJSON(
+    linesUrl,
+    null,
+    null,
+    IVB.handleRelation,
+    IVB.addSegmentFrequencies
+  );
 };
 
 IVB.displayExtension = function(layer) {
@@ -65,6 +74,20 @@ IVB.handleRelation = function(p) {
         reltags: p.tags,
         angle: stopAngles[mem.ref]
       });
+      if (p.tags.interval && mem.role === '' && !/N[0-9]/.test(p.tags.ref)) {
+        if (!IVB.frequencyBySegment[mem.obj.id]) {
+          IVB.frequencyBySegment[mem.obj.id] = {
+            type: 'Feature',
+            geometry: mem.obj.geometry,
+            id: mem.obj.id,
+            routes: {},
+            frequency: 0
+          };
+        }
+        var frequency = 60 / p.tags.interval;
+        IVB.frequencyBySegment[mem.obj.id].frequency += frequency;
+        IVB.frequencyBySegment[mem.obj.id].routes[p.tags.ref] = 1;
+      }
     });
 };
 
@@ -170,4 +193,25 @@ IVB.bindPopup = function(p, l) {
   l.bindPopup(
     '<b>' + p.reltags.ref + '</b>' + (p.tags && p.tags.name ? '&nbsp;' + p.tags.name : '')
   );
+};
+
+IVB.addSegmentFrequencies = function() {
+  Object.keys(IVB.frequencyBySegment).map(function(id) {
+    var segment = IVB.frequencyBySegment[id];
+    if (segment.type !== 'Feature') return;
+    var routes = Object.keys(segment.routes)
+      .sort()
+      .join(', ');
+    L.geoJson(segment, {
+      style: function() {
+        return {
+          opacity: 1,
+          color: '#000000',
+          weight: segment.frequency || 1
+        };
+      }
+    })
+      .bindTooltip(segment.frequency + ' Fahrten pro Stunde<br>Linien: ' + routes)
+      .addTo(IVB.layers.frequency);
+  });
 };
