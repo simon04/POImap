@@ -71,15 +71,16 @@ POImap.loadAndParseOverpassJSON = function(
   overpassQueryUrl,
   callbackNode,
   callbackWay,
-  callbackRelation
+  callbackRelation,
+  callbackDone
 ) {
   var url = overpassQueryUrl.replace(/(BBOX)/g, map.getBounds().toOverpassBBoxString());
   $.getJSON(url, function(json) {
-    POImap.parseOverpassJSON(json, callbackNode, callbackWay, callbackRelation);
+    POImap.parseOverpassJSON(json, callbackNode, callbackWay, callbackRelation, callbackDone);
   });
 };
 
-POImap.parseOverpassJSON = function(overpassJSON, callbackNode, callbackWay, callbackRelation) {
+POImap.parseOverpassJSON = function(overpassJSON, callbackNode, callbackWay, callbackRelation, callbackDone) {
   var nodes = {},
     ways = {};
   for (var i = 0; i < overpassJSON.elements.length; i++) {
@@ -114,4 +115,5 @@ POImap.parseOverpassJSON = function(overpassJSON, callbackNode, callbackWay, cal
         break;
     }
   }
+  if (typeof callbackDone === 'function') callbackDone();
 };
