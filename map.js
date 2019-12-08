@@ -109,7 +109,7 @@ POImap.parseOverpassJSON = function(overpassJSON, callbackNode, callbackWay, cal
         p.members.map(function(mem) {
           mem.obj = (mem.type == 'way' ? ways : nodes)[mem.ref];
         });
-        // p has type=relaton, id, tags={k:v}, members=[{role, obj}]
+        // p has type=relation, id, tags={k:v}, members=[{role, obj}]
         if (typeof callbackRelation === 'function') callbackRelation(p);
         break;
     }
