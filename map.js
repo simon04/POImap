@@ -56,7 +56,7 @@ POImap.init = function() {
     }
   };
 
-  if (navigator.geolocation) {
+  if (navigator.geolocation && !/ivb.html/.test(location.href)) {
     navigator.geolocation.getCurrentPosition(function(position) {
       var center = new L.LatLng(position.coords.latitude, position.coords.longitude);
       map.setView(center, 13);
