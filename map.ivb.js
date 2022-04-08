@@ -18,7 +18,7 @@ IVB.init = function() {
   L.control.scale({imperial: false}).addTo(IVB.map);
   IVB.frequencyBySegment = L.layerGroup();
   var extensionUrl =
-    '//www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway~"construction|proposed"][construction!=rail];node(w););out body;';
+    'https://www.overpass-api.de/api/interpreter?data=[out:json];(way(47.2,11.3,47.3,11.6)[railway~"construction|proposed"][construction!=rail];node(w););out body;';
   POImap.loadAndParseOverpassJSON(
     extensionUrl,
     null,
@@ -27,7 +27,7 @@ IVB.init = function() {
   );
   // load route relations
   var linesUrl =
-    '//www.overpass-api.de/api/interpreter?data=[out:json];' +
+    'https://www.overpass-api.de/api/interpreter?data=[out:json];' +
     '(relation["operator:short"="IVB"][type=route]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(
     linesUrl,

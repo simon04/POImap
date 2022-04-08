@@ -31,7 +31,7 @@
           shadowSize: new L.Point(0, 0)
         });
 
-        var poiUrl = '//overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity=restaurant];out;'.replace(
+        var poiUrl = 'https://overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity=restaurant];out;'.replace(
           /(BBOX)/g,
           map.getBounds().toOverpassBBoxString()
         );

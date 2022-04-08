@@ -54,7 +54,7 @@
                       $('<a>')
                         .attr({
                           href:
-                            '//www.openstreetmap.org/browse/' +
+                            'https://www.openstreetmap.org/browse/' +
                             {w: 'way', n: 'node', r: 'relation'}[type] +
                             '/' +
                             id,
@@ -80,12 +80,12 @@
           var icon =
             n.tags.railway == 'station'
               ? {
-                  icon: '//raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png',
+                  icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-18.png',
                   size: 18
                 }
               : n.tags.railway == 'halt'
               ? {
-                  icon: '//raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png',
+                  icon: 'https://raw.githubusercontent.com/mapbox/maki/mb-pages/renders/rail-12.png',
                   size: 12
                 }
               : undefined;
@@ -157,7 +157,7 @@
         };
 
         POImap.loadAndParseOverpassJSON(
-          '//www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;',
+          'https://www.overpass-api.de/api/interpreter?data=[out:json];(node[railway](BBOX));out;(way[railway](BBOX);node(w));out;',
           handleNode,
           handleWay,
           null

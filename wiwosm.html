@@ -38,12 +38,12 @@
         };
         var map = POImap.init();
         $.getJSON(
-          '//toolserver.org/~simon04/cats.php',
+          'https://toolserver.org/~simon04/cats.php',
           {lang: 'de', cat: 'Bahnstrecke in Österreich'},
           function(json) {
             $(json.sort()).each(function(i, article) {
               $.getJSON(
-                '//toolserver.org/~simon04/getGeoJSON.php',
+                'https://toolserver.org/~simon04/getGeoJSON.php',
                 {lang: 'de', article: article},
                 function(geojson) {
                   article = article.replace(/_/g, ' ');

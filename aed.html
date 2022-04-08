@@ -17,14 +17,14 @@
       function loadAed() {
         var aedIcon = L.icon({
           iconUrl:
-            '//upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Automated_External_Defibrillator_%28symbol%29.svg/16px-Automated_External_Defibrillator_%28symbol%29.svg.png',
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Automated_External_Defibrillator_%28symbol%29.svg/16px-Automated_External_Defibrillator_%28symbol%29.svg.png',
           iconSize: new L.Point(16, 16),
           iconAnchor: new L.Point(8, 8),
           shadowSize: new L.Point(0, 0)
         });
 
         var aedUrl =
-          '//overpass-api.de/api/interpreter?data=[out:json];node[emergency=aed];out;node[medical=aed];out;';
+          'https://overpass-api.de/api/interpreter?data=[out:json];node[emergency=aed];out;node[medical=aed];out;';
         var aedInfo = function(tags) {
           var r = $('<table>');
           for (var key in tags)

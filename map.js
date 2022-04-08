@@ -4,10 +4,10 @@ POImap.init = function() {
   var attr_osm = 'Map data &copy; <a href="//openstreetmap.org/">OpenStreetMap</a> contributors',
     attr_overpass = 'POI via <a href="//www.overpass-api.de/">Overpass API</a>';
 
-  var osm = new L.TileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  var osm = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: [attr_osm, attr_overpass].join(', ')
     }),
-    transport = new L.TileLayer('//{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png', {
+    transport = new L.TileLayer('https://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png', {
       opacity: 0.5,
       attribution: [
         '<a href="http://blog.gravitystorm.co.uk/2011/04/11/transport-map/">Gravitystorm Transport Map</a>',
@@ -15,11 +15,11 @@ POImap.init = function() {
         attr_overpass
       ].join(', ')
     }),
-    osm_bw = new L.TileLayer('//{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png', {
+    osm_bw = new L.TileLayer('https://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png', {
       opacity: 0.5,
       attribution: [attr_osm, attr_overpass].join(', ')
     }),
-    osm_no = new L.TileLayer('//{s}.www.toolserver.org/tiles/osm-no-labels/{z}/{x}/{y}.png', {
+    osm_no = new L.TileLayer('https://{s}.www.toolserver.org/tiles/osm-no-labels/{z}/{x}/{y}.png', {
       attribution: [attr_osm, attr_overpass].join(', ')
     });
 
