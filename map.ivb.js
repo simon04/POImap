@@ -28,7 +28,7 @@ IVB.init = function() {
   // load route relations
   var linesUrl =
     '//www.overpass-api.de/api/interpreter?data=[out:json];' +
-    '(relation[operator="IVB"][type=route]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
+    '(relation["operator:short"="IVB"][type=route]["public_transport:version"=2];node(r)->.x;way(r);node(w););out body;';
   POImap.loadAndParseOverpassJSON(
     linesUrl,
     null,
