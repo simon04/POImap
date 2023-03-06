@@ -1,38 +1,11 @@
-L.Semicircle = L.Circle.extend({
-  setAngle(angle) {
-    this._angle = angle;
-    return this.redraw();
-  },
-  getAngle() {
-    return this._angle;
-  },
-  getPathString() {
-    var p = this._point;
-    var r = this._radius;
-
-    this._path.setAttribute('transform', `rotate(${[this._angle + 90, p.x, p.y].join(',')})`);
-
-    if (this._checkIfEmpty()) {
-      return '';
-    } else if (L.Browser.svg) {
-      return `M${p.x},${p.y - r}A${r},${r},0,1,1,${p.x},${p.y + r}`;
-    } else {
-      //TODO: adapt
-      p._round();
-      r = Math.round(r);
-      return `AL ${p.x},${p.y} ${r},${r} 0,${65535 * 360}`;
-    }
-  },
-});
-
-L.SemicircleMarker = L.Semicircle.extend({
+L.SemicircleMarker = L.CircleMarker.extend({
   options: {
     radius: 10,
     weight: 2,
     angle: 0,
   },
   initialize(latlng, options) {
-    L.Semicircle.prototype.initialize.call(this, latlng, null, options);
+    L.CircleMarker.prototype.initialize.call(this, latlng, null, options);
     this._radius = this.options.radius;
     this._angle = this.options.angle;
   },
@@ -46,5 +19,11 @@ L.SemicircleMarker = L.Semicircle.extend({
   setAngle(angle) {
     this._angle = angle;
     return this.redraw();
+  },
+  _updatePath() {
+    var p = this._point;
+    var r = this._radius;
+    this._path.setAttribute('d', `M${p.x},${p.y - r}A${r},${r},0,1,1,${p.x},${p.y + r}`);
+    this._path.setAttribute('transform', `rotate(${[this._angle + 90, p.x, p.y].join(',')})`);
   },
 });
