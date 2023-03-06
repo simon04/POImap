@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "prefer-arrow-callback": "warn",
+    "prefer-const": "warn",
+    "prefer-destructuring": "warn",
+    "prefer-template": "warn"
+  }
+}
